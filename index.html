@@ -128,7 +128,7 @@
                         <label for="filterMaxAltitude" class="block text-sm font-medium text-gray-700">Max. Baro-Höhe (ft)</label>
                         <input type="number" id="filterMaxAltitude" placeholder="z.B. 30000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border">
                     </div>
-                    <p class="col-span-2 text-xs text-gray-500 mt-1">Hinweis: Filterung nur nach **Barometrischer Höhe (ft)**.</p>
+                    <p class="col-span-2 text-xs text-gray-500 mt-1">Hinweis: Filterung nach Barometrischer Höhe (ft).</p>
                 </div>
                 <div class="col-span-2 md:col-span-3 grid grid-cols-2 gap-4">
                     <div>
@@ -395,7 +395,7 @@
             lastDisplayedIcao24Set = currentDisplayedIcao24Set;
 
             const time = new Date().toLocaleTimeString('de-DE');
-            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern. (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern.<br> (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
         }
         
         function sortFlights(key, keepDirection = false) {
@@ -483,4 +483,5 @@
     </script>
 </body>
 </html>
+
 
