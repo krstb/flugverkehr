@@ -395,7 +395,7 @@
             lastDisplayedIcao24Set = currentDisplayedIcao24Set;
 
             const time = new Date().toLocaleTimeString('de-DE');
-            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern <br> (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
         }
         
         function sortFlights(key, keepDirection = false) {
@@ -444,7 +444,7 @@
         function alertUser(message, type) {
             const colors = { blue: "text-blue-700 bg-blue-100", green: "text-green-700 bg-green-100", red: "text-red-700 bg-red-100", yellow: "text-yellow-700 bg-yellow-100", indigo: "text-indigo-700 bg-indigo-100" };
             statusMessage.className = `mt-4 p-2 text-sm font-medium rounded-lg ${colors[type]}`;
-            statusMessage.textContent = message;
+statusMessage.innerHTML = message;
         }
 
         async function getFlightData() {
@@ -483,6 +483,7 @@
     </script>
 </body>
 </html>
+
 
 
 
