@@ -46,6 +46,11 @@
         .sortable-header:not(.sorted) .sort-indicator { opacity: 0; }
         .sortable-header:not(.sorted):hover .sort-indicator { opacity: 0.5; }
         .collapsible-content { transition: all 0.3s ease-out; overflow: hidden; }
+        
+        /* GPS Status Styles */
+        #gps-status { font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 8px; display: inline-block; margin-bottom: 0.5rem; }
+        .gps-active { background: #dcfce7; color: #166534; border: 1px solid #166534; }
+        .gps-fallback { background: #fee2e2; color: #991b1b; border: 1px solid #991b1b; }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
@@ -58,33 +63,34 @@
     
     <div id="location-container" class="mb-8 bg-white rounded-xl shadow-lg border-l-4 border-indigo-500" data-state="open">
         <div id="location-header" class="p-4 md:p-6 cursor-pointer flex justify-between items-center bg-indigo-50 hover:bg-indigo-100 rounded-t-xl transition duration-150">
-            <h2 class="text-xl font-semibold text-indigo-700">Suchbereich definieren</h2>
+            <h2 class="text-xl font-semibold text-indigo-700">Suchbereich & Standort</h2>
             <svg id="location-chevron" class="w-6 h-6 text-indigo-600 transform transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
         </div>
         <div id="location-content" class="collapsible-content p-4 md:p-6 pt-0">
-            <div class="mb-4">
-                <label for="locationSelect" class="block text-sm font-medium text-gray-700">Schnellauswahl Standorte</label>
+            <div class="mb-4 pt-4">
+                <div id="gps-status" class="gps-fallback">INITIALISIERUNG...</div>
+                <label for="locationSelect" class="block text-sm font-medium text-gray-700 mt-2">Schnellauswahl Standorte</label>
                 <select id="locationSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border bg-white">
-                    <option value="48.362998,10.838984" data-name="Stadtbergen" selected>Stadtbergen</option> 
+                    <option value="gps" selected>🛰️ Aktueller Standort (GPS)</option>
+                    <option value="48.362998,10.838984" data-name="Stadtbergen">Stadtbergen</option> 
                     <option value="48.32164602,10.91165543" data-name="Haunstetten">Haunstetten</option> 
-                    <option value="48.37,10.89" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
+                    <option value="48.425,10.932" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
                     <option value="48.35,11.77" data-name="München (EDDM)">München (EDDM)</option>
                     <option value="48.34039104,11.79485321" data-name="Besucherhügel 2">Besucherhügel 2</option>
-                    <option value="50.11,8.68" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
+                    <option value="50.033,8.571" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
                     <option value="52.3667,13.5033" data-name="Berlin (EDDB)">Berlin (EDDB)</option>
                     <option value="53.6304,9.9882" data-name="Hamburg (EDDH)">Hamburg (EDDH)</option>
                     <option value="53.0475,8.78667" data-name="Bremen (EDDW)">Bremen (EDDW)</option>
-                    <option value="" data-name="Eigene Koord.">Eigene Koord.</option>
                 </select>
             </div>
             <div class="grid grid-cols-3 gap-4 items-end pt-4 border-t border-gray-200">
-                <div>
+                <div class="opacity-50 pointer-events-none">
                     <label for="centerLat" class="block text-sm font-medium text-gray-700">Breite (Lat)</label>
-                    <input type="number" id="centerLat" value="48.362998" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    <input type="number" id="centerLat" value="48.362998" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" readonly>
                 </div>
-                <div>
+                <div class="opacity-50 pointer-events-none">
                     <label for="centerLon" class="block text-sm font-medium text-gray-700">Länge (Lon)</label>
-                    <input type="number" id="centerLon" value="10.838984" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    <input type="number" id="centerLon" value="10.838984" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" readonly>
                 </div>
                 <div>
                     <label for="radiusKm" class="block text-sm font-medium text-gray-700">Radius (km)</label>
@@ -204,8 +210,47 @@
             filterContent = document.getElementById('filter-content'), filterChevron = document.getElementById('filter-chevron');
 
         const STORAGE_KEY_PREFIX = 'flightTracker_', DEFAULT_LAT = "48.362998", DEFAULT_LON = "10.838984",
-            DEFAULT_SELECT_VALUE = "48.362998,10.838984", DEFAULT_RADIUS = "20",
+            DEFAULT_SELECT_VALUE = "gps", DEFAULT_RADIUS = "20",
             STORAGE_KEY_LOCATION_TOGGLE = STORAGE_KEY_PREFIX + 'locationToggle', STORAGE_KEY_FILTER_TOGGLE = STORAGE_KEY_PREFIX + 'filterToggle';
+
+        // GPS Logik Integration
+        let isGpsActive = false;
+        const stdLat = 48.362998, stdLon = 10.838984;
+
+        function updateStatusDisplay() {
+            const statusDiv = document.getElementById('gps-status');
+            const lat = parseFloat(centerLatInput.value);
+            const lon = parseFloat(centerLonInput.value);
+            const label = isGpsActive ? "🟢 GPS AKTIV" : (lat.toFixed(4) === stdLat.toFixed(4) ? "🔴 STADTBERGEN" : "🔴 MANUELL/GESPEICHERT");
+            statusDiv.className = isGpsActive ? "gps-active" : "gps-fallback";
+            statusDiv.innerHTML = `${label} <span style="opacity:0.7; font-size:0.65rem; margin-left:5px;">${lat.toFixed(4)} / ${lon.toFixed(4)}</span>`;
+        }
+
+        function updateLocation() {
+            if (locationSelect.value !== 'gps') return;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (p) => {
+                        const newLat = p.coords.latitude;
+                        const newLng = p.coords.longitude;
+                        if (!isGpsActive || Math.abs(newLat - parseFloat(centerLatInput.value)) > 0.0005 || Math.abs(newLng - parseFloat(centerLonInput.value)) > 0.0005) {
+                            centerLatInput.value = newLat.toFixed(6);
+                            centerLonInput.value = newLng.toFixed(6);
+                            isGpsActive = true;
+                            updateStatusDisplay();
+                            calculateBoundingBox();
+                        }
+                        setTimeout(updateLocation, 15000);
+                    },
+                    (error) => {
+                        isGpsActive = false;
+                        updateStatusDisplay();
+                        setTimeout(updateLocation, 15000);
+                    },
+                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                );
+            }
+        }
 
         function saveSettings() {
             try {
@@ -226,11 +271,7 @@
                 radiusKmInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'radius') || DEFAULT_RADIUS;
                 const savedLocationSelect = localStorage.getItem(STORAGE_KEY_PREFIX + 'locationSelect');
                 locationSelect.value = savedLocationSelect || DEFAULT_SELECT_VALUE;
-                if (locationSelect.value !== savedLocationSelect) {
-                    const currentCoords = `${centerLatInput.value},${centerLonInput.value}`;
-                    let matchFound = Array.from(locationSelect.options).some(opt => opt.value === currentCoords);
-                    locationSelect.value = matchFound ? currentCoords : '';
-                }
+                
                 filterCallsignInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'callsign') || '';
                 filterCountrySelect.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'country') || '';
                 filterMinAltitudeInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'minAlt') || '';
@@ -282,16 +323,22 @@
 
         function updateCoordinatesFromSelect() {
             const selectedValue = locationSelect.value;
-            if (selectedValue) {
+            if (selectedValue === 'gps') {
+                isGpsActive = false; // Reset für neue Standortabfrage
+                updateLocation();
+                startDataRefresh();
+            } else if (selectedValue) {
+                isGpsActive = false;
                 const [lat, lon] = selectedValue.split(',').map(parseFloat);
                 if (!isNaN(lat) && !isNaN(lon)) {
                     centerLatInput.value = lat.toFixed(6);
                     centerLonInput.value = lon.toFixed(6);
+                    updateStatusDisplay();
                     startDataRefresh();
                 }
             } else {
                 if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
-                alertUser("Automatischer Refresh gestoppt. Bitte Koordinaten eingeben und durch Auswahl eines Standorts neu starten.", "indigo");
+                alertUser("Automatischer Refresh gestoppt. Bitte Standort wählen.", "indigo");
                 saveSettings();
             }
         }
@@ -454,7 +501,6 @@
             }).reduce((acc, val) => ({ desktop: acc.desktop + val.desktop, mobile: acc.mobile + val.mobile }), { desktop: '', mobile: '' });
         }
 
-        // KORRIGIERTE FUNKTION, UM DEN FEHLER ZU BEHEBEN
         function attachSortListeners() {
             document.querySelectorAll('.sortable-header').forEach(header => {
                 header.onclick = () => {
@@ -485,10 +531,10 @@
                 mobileWrapper.className = 'sm:hidden space-y-4 mt-4';
                 flightContainer.appendChild(tableWrapper);
                 flightContainer.appendChild(mobileWrapper);
-                attachSortListeners(); // Aufruf der (jetzt definierten) Funktion
+                attachSortListeners();
             } else {
                 tableWrapper.querySelector('thead tr').innerHTML = createTableHeaderHtml();
-                attachSortListeners(); // Aufruf der (jetzt definierten) Funktion
+                attachSortListeners();
             }
             tableWrapper.classList.toggle('hidden', flights.length === 0);
             mobileWrapper.classList.toggle('hidden', flights.length === 0);
@@ -537,7 +583,7 @@
                 lastDisplayedIcao24Set.clear();
                 displayedFlights = [];
                 renderTable();
-                alertUser(`Keine Flugzeuge im definierten Radius gefunden. (Aktualisiert: ${new Date().toLocaleTimeString('de-DE')})`, "yellow");
+                alertUser(`Keine Flugzeuge im Radius gefunden. (${new Date().toLocaleTimeString('de-DE')})`, "yellow");
                 return;
             }
 
@@ -580,7 +626,7 @@
         }
         
         function setupChangeListeners() {
-            [centerLatInput, centerLonInput, radiusKmInput].forEach(input => {
+            [radiusKmInput].forEach(input => {
                 input.addEventListener('input', () => { saveSettings(); calculateBoundingBox(); });
             });
             [filterCallsignInput, filterMinAltitudeInput, filterMaxAltitudeInput, filterMinSpeedInput, filterMaxSpeedInput, filterCountrySelect]
@@ -598,15 +644,16 @@
                 alertUser("Tippen Sie auf 'Audio starten', um Töne zu aktivieren.", "blue");
             } else { isToneActive = true; }
             locationSelect.addEventListener('change', updateCoordinatesFromSelect);
-            startDataRefresh();
+            
+            // Initialer Start: GPS bevorzugen wenn ausgewählt
+            if (locationSelect.value === 'gps') {
+                updateLocation();
+            } else {
+                updateStatusDisplay();
+                startDataRefresh();
+            }
             calculateBoundingBox();
         };
     </script>
 </body>
-
 </html>
-
-
-
-
-
