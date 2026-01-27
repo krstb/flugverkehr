@@ -373,7 +373,7 @@
             filterCountrySelect.value = currentValue;
         }
 
-        function applyFilters() {
+                function applyFilters() {
             saveSettings();
             const callsignFilter = filterCallsignInput.value.trim().toUpperCase(), countryFilter = filterCountrySelect.value;
             const minAlt = parseFloat(filterMinAltitudeInput.value) || 0, maxAlt = parseFloat(filterMaxAltitudeInput.value) || Infinity;
@@ -395,7 +395,18 @@
             lastDisplayedIcao24Set = currentDisplayedIcao24Set;
 
             const time = new Date().toLocaleTimeString('de-DE');
-            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern.<br> (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
+            // Die geänderte Zeile mit dem Zeilenumbruch:
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern.<br>(${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
+        }
+
+            
+            sortFlights(currentSort.key, true);
+            const currentDisplayedIcao24Set = new Set(displayedFlights.map(f => f.icao24));
+            if (Array.from(currentDisplayedIcao24Set).some(icao => !lastDisplayedIcao24Set.has(icao))) playSuccessTone();
+            lastDisplayedIcao24Set = currentDisplayedIcao24Set;
+
+            const time = new Date().toLocaleTimeString('de-DE');
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern.<br>(${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
         }
         
         function sortFlights(key, keepDirection = false) {
@@ -483,5 +494,6 @@
     </script>
 </body>
 </html>
+
 
 
