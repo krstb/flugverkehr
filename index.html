@@ -395,7 +395,7 @@
             lastDisplayedIcao24Set = currentDisplayedIcao24Set;
 
             const time = new Date().toLocaleTimeString('de-DE');
-            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern <br> (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
         }
         
         function sortFlights(key, keepDirection = false) {
@@ -483,6 +483,7 @@ statusMessage.innerHTML = message;
     </script>
 </body>
 </html>
+
 
 
 
