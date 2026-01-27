@@ -74,23 +74,23 @@
                     <option value="gps" selected>🛰️ Aktueller Standort (GPS)</option>
                     <option value="48.362998,10.838984" data-name="Stadtbergen">Stadtbergen</option> 
                     <option value="48.32164602,10.91165543" data-name="Haunstetten">Haunstetten</option> 
-                    <option value="48.425,10.932" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
+                    <option value="48.37,10.89" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
                     <option value="48.35,11.77" data-name="München (EDDM)">München (EDDM)</option>
                     <option value="48.34039104,11.79485321" data-name="Besucherhügel 2">Besucherhügel 2</option>
-                    <option value="50.033,8.571" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
+                    <option value="50.11,8.68" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
                     <option value="52.3667,13.5033" data-name="Berlin (EDDB)">Berlin (EDDB)</option>
                     <option value="53.6304,9.9882" data-name="Hamburg (EDDH)">Hamburg (EDDH)</option>
                     <option value="53.0475,8.78667" data-name="Bremen (EDDW)">Bremen (EDDW)</option>
                 </select>
             </div>
             <div class="grid grid-cols-3 gap-4 items-end pt-4 border-t border-gray-200">
-                <div class="opacity-50 pointer-events-none">
+                <div>
                     <label for="centerLat" class="block text-sm font-medium text-gray-700">Breite (Lat)</label>
-                    <input type="number" id="centerLat" value="48.362998" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" readonly>
+                    <input type="number" id="centerLat" value="48.362998" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
                 </div>
-                <div class="opacity-50 pointer-events-none">
+                <div>
                     <label for="centerLon" class="block text-sm font-medium text-gray-700">Länge (Lon)</label>
-                    <input type="number" id="centerLon" value="10.838984" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" readonly>
+                    <input type="number" id="centerLon" value="10.838984" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
                 </div>
                 <div>
                     <label for="radiusKm" class="block text-sm font-medium text-gray-700">Radius (km)</label>
@@ -187,7 +187,6 @@
 
         function openInGoogleMaps(lat, lon, callsign) {
             window.open(`https://www.google.com/maps?q=${lat},${lon}&ll=${lat},${lon}&z=12`, '_blank');
-            console.log(`Öffne Google Maps für Flug ${callsign} bei: ${lat.toFixed(6)}, ${lon.toFixed(6)}.`);
         }
 
         const OPENSKY_URL = "https://opensky-network.org/api/states/all";
@@ -213,7 +212,6 @@
             DEFAULT_SELECT_VALUE = "gps", DEFAULT_RADIUS = "20",
             STORAGE_KEY_LOCATION_TOGGLE = STORAGE_KEY_PREFIX + 'locationToggle', STORAGE_KEY_FILTER_TOGGLE = STORAGE_KEY_PREFIX + 'filterToggle';
 
-        // GPS Logik Integration
         let isGpsActive = false;
         const stdLat = 48.362998, stdLon = 10.838984;
 
@@ -221,7 +219,7 @@
             const statusDiv = document.getElementById('gps-status');
             const lat = parseFloat(centerLatInput.value);
             const lon = parseFloat(centerLonInput.value);
-            const label = isGpsActive ? "🟢 GPS AKTIV" : (lat.toFixed(4) === stdLat.toFixed(4) ? "🔴 STADTBERGEN" : "🔴 MANUELL/GESPEICHERT");
+            const label = isGpsActive ? "🟢 GPS AKTIV" : (lat.toFixed(4) === stdLat.toFixed(4) ? "🔴 STADTBERGEN" : "🔴 MANUELL");
             statusDiv.className = isGpsActive ? "gps-active" : "gps-fallback";
             statusDiv.innerHTML = `${label} <span style="opacity:0.7; font-size:0.65rem; margin-left:5px;">${lat.toFixed(4)} / ${lon.toFixed(4)}</span>`;
         }
@@ -233,13 +231,11 @@
                     (p) => {
                         const newLat = p.coords.latitude;
                         const newLng = p.coords.longitude;
-                        if (!isGpsActive || Math.abs(newLat - parseFloat(centerLatInput.value)) > 0.0005 || Math.abs(newLng - parseFloat(centerLonInput.value)) > 0.0005) {
-                            centerLatInput.value = newLat.toFixed(6);
-                            centerLonInput.value = newLng.toFixed(6);
-                            isGpsActive = true;
-                            updateStatusDisplay();
-                            calculateBoundingBox();
-                        }
+                        centerLatInput.value = newLat.toFixed(6);
+                        centerLonInput.value = newLng.toFixed(6);
+                        isGpsActive = true;
+                        updateStatusDisplay();
+                        calculateBoundingBox();
                         setTimeout(updateLocation, 15000);
                     },
                     (error) => {
@@ -261,7 +257,7 @@
                     locationToggle: locationContainer.getAttribute('data-state'), filterToggle: filterContainer.getAttribute('data-state')
                 };
                 for (const key in settings) localStorage.setItem(STORAGE_KEY_PREFIX + key, settings[key]);
-            } catch (e) { console.error("Fehler beim Speichern in localStorage:", e); }
+            } catch (e) { console.error("Fehler beim Speichern:", e); }
         }
 
         function loadSettings() {
@@ -314,7 +310,7 @@
 
         function calculateBoundingBox() {
             const centerLat = parseFloat(centerLatInput.value), centerLon = parseFloat(centerLonInput.value), radiusKm = parseFloat(radiusKmInput.value);
-            if (isNaN(centerLat) || isNaN(centerLon) || isNaN(radiusKm)) { console.error("Ungültige Eingabe."); return null; }
+            if (isNaN(centerLat) || isNaN(centerLon) || isNaN(radiusKm)) return null;
             const deltaLat = radiusKm / DEG_TO_KM, deltaLon = radiusKm / (DEG_TO_KM * Math.cos(toRad(centerLat)));
             const bbox = { lamin: centerLat - deltaLat, lamax: centerLat + deltaLat, lomin: centerLon - deltaLon, lomax: centerLon + deltaLon };
             currentBBoxText.textContent = `Suchbereich: B(${bbox.lamin.toFixed(4)}°- ${bbox.lamax.toFixed(4)}°), L(${bbox.lomin.toFixed(4)}°- ${bbox.lomax.toFixed(4)}°)`;
@@ -324,22 +320,16 @@
         function updateCoordinatesFromSelect() {
             const selectedValue = locationSelect.value;
             if (selectedValue === 'gps') {
-                isGpsActive = false; // Reset für neue Standortabfrage
+                isGpsActive = false;
                 updateLocation();
                 startDataRefresh();
             } else if (selectedValue) {
                 isGpsActive = false;
                 const [lat, lon] = selectedValue.split(',').map(parseFloat);
-                if (!isNaN(lat) && !isNaN(lon)) {
-                    centerLatInput.value = lat.toFixed(6);
-                    centerLonInput.value = lon.toFixed(6);
-                    updateStatusDisplay();
-                    startDataRefresh();
-                }
-            } else {
-                if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
-                alertUser("Automatischer Refresh gestoppt. Bitte Standort wählen.", "indigo");
-                saveSettings();
+                centerLatInput.value = lat.toFixed(6);
+                centerLonInput.value = lon.toFixed(6);
+                updateStatusDisplay();
+                startDataRefresh();
             }
         }
         
@@ -372,7 +362,7 @@
             const countries = new Set(flights.map(f => f.origin_country).filter(c => c && c !== 'N/A'));
             const sortedCountries = Array.from(countries).sort();
             let optionsHtml = '<option value="">Alle Länder</option>' + sortedCountries.map(c => `<option value="${c}">${c}</option>`).join('');
-            const currentValue = localStorage.getItem(STORAGE_KEY_PREFIX + 'country') || '';
+            const currentValue = filterCountrySelect.value;
             filterCountrySelect.innerHTML = optionsHtml;
             filterCountrySelect.value = currentValue;
         }
@@ -394,264 +384,94 @@
             });
             
             sortFlights(currentSort.key, true);
-
             const currentDisplayedIcao24Set = new Set(displayedFlights.map(f => f.icao24));
             if (Array.from(currentDisplayedIcao24Set).some(icao => !lastDisplayedIcao24Set.has(icao))) playSuccessTone();
             lastDisplayedIcao24Set = currentDisplayedIcao24Set;
 
-            const count = displayedFlights.length;
-            const total = allFetchedFlights.length;
             const time = new Date().toLocaleTimeString('de-DE');
-            const statusText = count > 0 ? `${count} Flüge entsprechen den Filtern. (${total} im Radius. ${time})`
-                                          : `Keine Flüge entsprechen den Filtern. (${total} im Radius. ${time})`;
-            alertUser(statusText, count > 0 ? "green" : "yellow");
+            alertUser(`${displayedFlights.length} Flüge entsprechen den Filtern. (${allFetchedFlights.length} im Radius. ${time})`, displayedFlights.length > 0 ? "green" : "yellow");
         }
         
-        function getStatusSortValue(status) {
-            const values = { 'Annäherung': 1, 'Gleich': 2, 'Entfernung': 3 };
-            return values[status] || 4;
-        }
-
         function sortFlights(key, keepDirection = false) {
-            let direction = currentSort.key === key && !keepDirection ? (currentSort.direction === 'asc' ? 'desc' : 'asc')
-                : (keepDirection ? currentSort.direction : 'asc');
+            let direction = currentSort.key === key && !keepDirection ? (currentSort.direction === 'asc' ? 'desc' : 'asc') : (keepDirection ? currentSort.direction : 'asc');
             currentSort = { key, direction };
-            saveSettings();
-
-            const collator = new Intl.Collator('de', { numeric: true });
             const dir = direction === 'asc' ? 1 : -1;
-
             displayedFlights.sort((a, b) => {
                 let aVal = a[key], bVal = b[key];
-                if (key === 'approach_status') {
-                    return (getStatusSortValue(aVal) - getStatusSortValue(bVal)) * dir;
-                }
-                const aNA = aVal === 'N/A' || aVal === null, bNA = bVal === 'N/A' || bVal === null;
-                if (aNA && bNA) return 0;
-                if (aNA) return 1 * dir; if (bNA) return -1 * dir;
-                return typeof aVal === 'string' ? collator.compare(aVal, bVal) * dir : (aVal - bVal) * dir;
+                if (aVal === 'N/A' || aVal === null) return 1 * dir;
+                if (bVal === 'N/A' || bVal === null) return -1 * dir;
+                return typeof aVal === 'string' ? aVal.localeCompare(bVal) * dir : (aVal - bVal) * dir;
             });
             renderTable();
         }
-        
-        function getApproachHtml(status) {
-            const map = {
-                'Annäherung': '<span class="text-green-600 font-bold" title="Nähert sich.">🟢 Nähernd</span>',
-                'Entfernung': '<span class="text-red-600 font-bold" title="Entfernt sich.">🔴 Entfernt</span>',
-                'Gleich': '<span class="text-gray-500" title="Distanz +/- konstant.">⚫ Gleich</span>'
-            };
-            return map[status] || '<span class="text-gray-400">?</span>';
-        }
-        
-        const HEADERS = [ { title: 'Status', key: 'approach_status', sortable: true }, { title: 'Entfernung', key: 'distance_km', sortable: true },
-            { title: 'Richtung', key: 'bearing_degrees', sortable: true }, { title: 'Rufzeichen', key: 'callsign', sortable: true },
-            { title: 'Höhe', key: 'alt_ft_baro', sortable: true, tooltip: 'Oben: Baro-Höhe (ft). Unten: Geo-Höhe (m).' },
-            { title: 'Geschw.', key: 'velocity_kmh', sortable: true }, { title: 'Kurs', key: 'track', sortable: true },
-            { title: 'Land', key: 'origin_country', sortable: true }, { title: 'ICAO24', key: 'icao24', sortable: false },
-            { title: 'Position', key: 'lat', sortable: false } ];
 
         function createTableHeaderHtml() {
-            return HEADERS.map(h => {
-                let indicator = '', classes = 'px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell';
-                if (h.sortable) {
-                    classes += ' cursor-pointer transition duration-150 sortable-header hover:bg-gray-100 group';
-                    if (currentSort.key === h.key) {
-                        classes += ' sorted';
-                        indicator = `<span class="sort-indicator">${currentSort.direction === 'asc' ? '▼' : '▲'}</span>`;
-                    } else {
-                        indicator = `<span class="sort-indicator">▼</span>`;
-                    }
-                }
-                const title = h.tooltip ? `title="${h.tooltip}"` : '';
-                const sort = h.sortable ? `data-sort-key="${h.key}"` : '';
-                return `<th class="${classes}" ${sort} ${title}>${h.title}${indicator}</th>`;
-            }).join('');
+            const headers = [ { title: 'Status', key: 'approach_status' }, { title: 'Entfernung', key: 'distance_km' }, { title: 'Richtung', key: 'bearing_degrees' }, { title: 'Rufzeichen', key: 'callsign' }, { title: 'Höhe', key: 'alt_ft_baro' }, { title: 'Geschw.', key: 'velocity_kmh' }, { title: 'Kurs', key: 'track' }, { title: 'Land', key: 'origin_country' }, { title: 'ICAO24', key: 'icao24' }, { title: 'Position', key: 'lat' } ];
+            return headers.map(h => `<th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell cursor-pointer" onclick="sortFlights('${h.key}')">${h.title}</th>`).join('');
         }
 
         function createFlightTableContentHtml(flights) {
             return flights.map(f => {
-                const baro = f.alt_ft_baro !== 'N/A' ? `<span class="text-sm font-bold text-gray-700 block" title="Barometrische Höhe in Fuß">${f.alt_ft_baro} ft</span>` : '';
-                const geo = f.alt_m_geo !== 'N/A' ? `<span class="text-xs text-indigo-600 block" title="Geo-Höhe in Metern">${f.alt_m_geo} m</span>` : '';
-                const alt = (baro || geo) ? `${baro}${geo}` : 'N/A';
-                const dist = `${f.distance_km.toFixed(1)} km`;
-                const pos = `${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}`;
-                const desktop = `<tr class="hover:bg-gray-50 border-b transition duration-150 ease-in-out hidden sm:table-row">
-                    <td class="px-4 py-3 whitespace-nowrap">${getApproachHtml(f.approach_status)}</td>
-                    <td class="px-4 py-3 font-semibold text-green-700">${dist}</td>
-                    <td class="px-4 py-3"><span class="font-bold">${f.bearing_cardinal}</span><span class="text-xs text-gray-500 block">(${f.bearing_degrees}°)</span></td>
-                    <td class="px-4 py-3 font-semibold text-indigo-700">${f.callsign}</td>
-                    <td class="px-4 py-3">${alt}</td>
-                    <td class="px-4 py-3">${f.velocity_kmh} ${f.velocity_unit}</td>
-                    <td class="px-4 py-3">${f.track.toFixed(0)}°</td>
-                    <td class="px-4 py-3">${f.origin_country}</td>
-                    <td class="px-4 py-3 font-mono text-xs">${f.icao24}</td>
-                    <td class="px-4 py-3"><button class="text-blue-600 hover:text-blue-800 underline font-mono text-xs" onclick="openInGoogleMaps(${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}, '${f.callsign}')" title="Position in Google Maps">${pos}</button></td>
-                </tr>`;
-                const mobile = `<div class="sm:hidden mb-4 p-4 bg-white rounded-lg shadow-md border-l-4 border-indigo-500">
-                    <div class="flex justify-between items-center mb-2"><h3 class="text-lg font-bold text-indigo-700">${f.callsign}</h3><span class="text-sm text-gray-500 font-mono">${f.icao24}</span></div>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="font-semibold text-green-700">Entfernung: ${dist}</div><div class="font-semibold">${getApproachHtml(f.approach_status)}</div>
-                        <div>Richtung: ${f.bearing_cardinal} (${f.bearing_degrees}°)</div><div>Kurs: ${f.track.toFixed(0)}°</div>
-                        <div class="col-span-2">Höhe: ${baro} ${geo}</div>
-                        <div>Geschw.: ${f.velocity_kmh} ${f.velocity_unit}</div><div>Land: ${f.origin_country}</div>
-                        <div class="col-span-2 mt-2"><button class="text-xs text-blue-600 hover:text-blue-800 underline font-mono" onclick="openInGoogleMaps(${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}, '${f.callsign}')" title="Position in Google Maps">Position: ${pos}</button></div>
-                    </div>
-                </div>`;
+                const dist = `${f.distance_km.toFixed(1)} km`, pos = `${f.lat.toFixed(4)}, ${f.lon.toFixed(4)}`;
+                const desktop = `<tr class="hover:bg-gray-50 border-b transition hidden sm:table-row"><td class="px-4 py-3">${f.approach_status}</td><td class="px-4 py-3 font-semibold text-green-700">${dist}</td><td class="px-4 py-3">${f.bearing_cardinal} (${f.bearing_degrees}°)</td><td class="px-4 py-3 font-semibold text-indigo-700">${f.callsign}</td><td class="px-4 py-3">${f.alt_ft_baro} ft</td><td class="px-4 py-3">${f.velocity_kmh} km/h</td><td class="px-4 py-3">${f.track.toFixed(0)}°</td><td class="px-4 py-3">${f.origin_country}</td><td class="px-4 py-3 text-xs">${f.icao24}</td><td class="px-4 py-3"><button class="text-blue-600 underline text-xs" onclick="openInGoogleMaps(${f.lat}, ${f.lon}, '${f.callsign}')">${pos}</button></td></tr>`;
+                const mobile = `<div class="sm:hidden mb-4 p-4 bg-white rounded-lg shadow-md border-l-4 border-indigo-500"><div class="font-bold text-indigo-700">${f.callsign}</div><div class="text-sm">Distanz: ${dist} | Status: ${f.approach_status} | Höhe: ${f.alt_ft_baro} ft</div><button class="text-xs text-blue-600 underline mt-1" onclick="openInGoogleMaps(${f.lat}, ${f.lon}, '${f.callsign}')">Position: ${pos}</button></div>`;
                 return { desktop, mobile };
             }).reduce((acc, val) => ({ desktop: acc.desktop + val.desktop, mobile: acc.mobile + val.mobile }), { desktop: '', mobile: '' });
         }
 
-        function attachSortListeners() {
-            document.querySelectorAll('.sortable-header').forEach(header => {
-                header.onclick = () => {
-                    const key = header.getAttribute('data-sort-key');
-                    if (key) {
-                        sortFlights(key);
-                    }
-                };
-            });
-        }
-
         function renderTable() {
             const flights = displayedFlights;
-            const totalFlights = allFetchedFlights.length;
-            let tableWrapper = document.getElementById('flight-table-wrapper');
-            let mobileWrapper = document.getElementById('flight-mobile-wrapper');
+            let tableWrapper = document.getElementById('flight-table-wrapper'), mobileWrapper = document.getElementById('flight-mobile-wrapper');
             if (!tableWrapper) {
-                tableWrapper = document.createElement('div');
-                tableWrapper.id = 'flight-table-wrapper';
-                tableWrapper.className = 'overflow-x-auto bg-white rounded-xl shadow-lg border-t-4 border-indigo-500 mt-8 hidden sm:block';
-                const table = document.createElement('table');
-                table.id = 'flight-table';
-                table.className = 'min-w-full divide-y divide-gray-200';
-                table.innerHTML = `<thead class="bg-teal-100 sticky top-0"><tr>${createTableHeaderHtml()}</tr></thead><tbody id="flight-tbody" class="bg-white divide-y divide-gray-200 text-sm text-gray-800"></tbody>`;
-                tableWrapper.appendChild(table);
-                mobileWrapper = document.createElement('div');
-                mobileWrapper.id = 'flight-mobile-wrapper';
-                mobileWrapper.className = 'sm:hidden space-y-4 mt-4';
-                flightContainer.appendChild(tableWrapper);
-                flightContainer.appendChild(mobileWrapper);
-                attachSortListeners();
-            } else {
-                tableWrapper.querySelector('thead tr').innerHTML = createTableHeaderHtml();
-                attachSortListeners();
+                tableWrapper = document.createElement('div'); tableWrapper.id = 'flight-table-wrapper'; tableWrapper.className = 'overflow-x-auto bg-white rounded-xl shadow-lg border-t-4 border-indigo-500 mt-8 hidden sm:block';
+                tableWrapper.innerHTML = `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-teal-100"><tr>${createTableHeaderHtml()}</tr></thead><tbody id="flight-tbody" class="bg-white divide-y divide-gray-200 text-sm"></tbody></table>`;
+                mobileWrapper = document.createElement('div'); mobileWrapper.id = 'flight-mobile-wrapper'; mobileWrapper.className = 'sm:hidden space-y-4 mt-4';
+                flightContainer.appendChild(tableWrapper); flightContainer.appendChild(mobileWrapper);
             }
             tableWrapper.classList.toggle('hidden', flights.length === 0);
             mobileWrapper.classList.toggle('hidden', flights.length === 0);
-            
-            let noDataMessage = document.getElementById('no-data-message');
-            if (flights.length === 0) {
-                const message = totalFlights > 0 ? `Keine Flüge entsprechen den Filtern (${totalFlights} im Radius)` : 'Keine Flugzeuge im definierten Radius gefunden.';
-                if (!noDataMessage) {
-                    noDataMessage = document.createElement('div');
-                    noDataMessage.id = 'no-data-message';
-                    noDataMessage.className = 'mt-8 p-8 text-center text-lg text-gray-600 bg-yellow-50 rounded-xl shadow-md';
-                    flightContainer.insertBefore(noDataMessage, tableWrapper);
-                }
-                noDataMessage.textContent = message;
-                noDataMessage.style.display = 'block';
-            } else if (noDataMessage) {
-                noDataMessage.style.display = 'none';
-            }
-            
             const { desktop, mobile } = createFlightTableContentHtml(flights);
             document.getElementById('flight-tbody').innerHTML = desktop;
             mobileWrapper.innerHTML = mobile;
         }
 
         function alertUser(message, type) {
-            const colors = { blue: "text-blue-700 bg-blue-100", green: "text-green-700 bg-green-100",
-                red: "text-red-700 bg-red-100", yellow: "text-yellow-700 bg-yellow-100", indigo: "text-indigo-700 bg-indigo-100" };
+            const colors = { blue: "text-blue-700 bg-blue-100", green: "text-green-700 bg-green-100", red: "text-red-700 bg-red-100", yellow: "text-yellow-700 bg-yellow-100", indigo: "text-indigo-700 bg-indigo-100" };
             statusMessage.className = `mt-4 p-2 text-sm font-medium rounded-lg ${colors[type]}`;
             statusMessage.textContent = message;
-        }
-        
-        function updateDisplay(data) {
-            loadingIndicator.style.display = 'none';
-            const centerLat = parseFloat(centerLatInput.value), centerLon = parseFloat(centerLonInput.value);
-            const radiusKm = parseFloat(radiusKmInput.value);
-
-            if (isNaN(centerLat) || isNaN(centerLon) || isNaN(radiusKm)) {
-                alertUser("Fehler bei der Verarbeitung der Koordinaten.", "red"); return;
-            }
-
-            const rawFlights = data.states ? data.states.map(s => formatFlightData(s, centerLat, centerLon)).filter(f => f !== null) : [];
-            
-            allFetchedFlights = rawFlights.filter(flight => flight.distance_km <= radiusKm);
-
-            if (allFetchedFlights.length === 0) {
-                lastDisplayedIcao24Set.clear();
-                displayedFlights = [];
-                renderTable();
-                alertUser(`Keine Flugzeuge im Radius gefunden. (${new Date().toLocaleTimeString('de-DE')})`, "yellow");
-                return;
-            }
-
-            populateCountryFilter(allFetchedFlights);
-            applyFilters();
         }
 
         async function getFlightData() {
             if (isFetching) return;
-            isFetching = true;
-            loadingIndicator.style.display = 'flex';
+            isFetching = true; loadingIndicator.style.display = 'flex';
             const bbox = calculateBoundingBox();
-            if (!bbox) {
-                alertUser("Fehler: Ungültige Standort- oder Radiuseingabe.", "red");
-                isFetching = false;
-                loadingIndicator.style.display = 'none';
-                return;
-            }
-            const url = `${OPENSKY_URL}?${new URLSearchParams(bbox).toString()}`;
+            if (!bbox) { isFetching = false; loadingIndicator.style.display = 'none'; return; }
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP-Fehler ${response.status}${response.status === 429 ? ' (Zu viele Anfragen)' : ''}`);
+                const response = await fetch(`${OPENSKY_URL}?${new URLSearchParams(bbox).toString()}`);
                 const data = await response.json();
-                updateDisplay(data);
-            } catch (error) {
-                console.error("Fehler beim Abrufen der Flugdaten:", error);
-                alertUser(`Fehler: ${error.message}`, "red");
-                if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
-            } finally {
-                isFetching = false;
-                loadingIndicator.style.display = 'none';
-            }
+                const centerLat = parseFloat(centerLatInput.value), centerLon = parseFloat(centerLonInput.value), radiusKm = parseFloat(radiusKmInput.value);
+                allFetchedFlights = (data.states ? data.states.map(s => formatFlightData(s, centerLat, centerLon)).filter(f => f !== null) : []).filter(f => f.distance_km <= radiusKm);
+                populateCountryFilter(allFetchedFlights);
+                applyFilters();
+            } catch (error) { alertUser(`Fehler: ${error.message}`, "red"); }
+            finally { isFetching = false; loadingIndicator.style.display = 'none'; }
         }
 
         function startDataRefresh() {
-            if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
-            saveSettings();
-            getFlightData();
+            if (refreshInterval) clearInterval(refreshInterval);
+            saveSettings(); getFlightData();
             refreshInterval = setInterval(getFlightData, REFRESH_INTERVAL_MS);
-        }
-        
-        function setupChangeListeners() {
-            [radiusKmInput].forEach(input => {
-                input.addEventListener('input', () => { saveSettings(); calculateBoundingBox(); });
-            });
-            [filterCallsignInput, filterMinAltitudeInput, filterMaxAltitudeInput, filterMinSpeedInput, filterMaxSpeedInput, filterCountrySelect]
-                .forEach(input => input.addEventListener('input', applyFilters));
-            locationHeader.addEventListener('click', () => toggleContent(locationContainer, locationContent, locationChevron));
-            filterHeader.addEventListener('click', () => toggleContent(filterContainer, filterContent, filterChevron));
         }
         
         window.onload = () => {
             loadSettings();
-            setupChangeListeners();
+            [centerLatInput, centerLonInput, radiusKmInput].forEach(input => input.addEventListener('input', () => { isGpsActive = false; updateStatusDisplay(); startDataRefresh(); }));
+            [filterCallsignInput, filterMinAltitudeInput, filterMaxAltitudeInput, filterMinSpeedInput, filterMaxSpeedInput, filterCountrySelect].forEach(input => input.addEventListener('input', applyFilters));
+            locationHeader.addEventListener('click', () => toggleContent(locationContainer, locationContent, locationChevron));
+            filterHeader.addEventListener('click', () => toggleContent(filterContainer, filterContent, filterChevron));
             document.getElementById('audio-init-button').addEventListener('click', startAudioContext);
-            if (Tone.context.state !== 'running') {
-                document.getElementById('audio-init-button').classList.remove('hidden');
-                alertUser("Tippen Sie auf 'Audio starten', um Töne zu aktivieren.", "blue");
-            } else { isToneActive = true; }
             locationSelect.addEventListener('change', updateCoordinatesFromSelect);
-            
-            // Initialer Start: GPS bevorzugen wenn ausgewählt
-            if (locationSelect.value === 'gps') {
-                updateLocation();
-            } else {
-                updateStatusDisplay();
-                startDataRefresh();
-            }
+            if (locationSelect.value === 'gps') updateLocation(); else { updateStatusDisplay(); startDataRefresh(); }
             calculateBoundingBox();
         };
     </script>
