@@ -332,7 +332,6 @@
                 updateStatusDisplay();
                 startDataRefresh();
             } else {
-                // Manuelle Eingabe ausgewählt
                 isGpsActive = false;
                 updateStatusDisplay();
                 startDataRefresh();
@@ -444,7 +443,7 @@
         function alertUser(message, type) {
             const colors = { blue: "text-blue-700 bg-blue-100", green: "text-green-700 bg-green-100", red: "text-red-700 bg-red-100", yellow: "text-yellow-700 bg-yellow-100", indigo: "text-indigo-700 bg-indigo-100" };
             statusMessage.className = `mt-4 p-2 text-sm font-medium rounded-lg ${colors[type]}`;
-statusMessage.innerHTML = message;
+            statusMessage.innerHTML = message;
         }
 
         async function getFlightData() {
@@ -477,15 +476,18 @@ statusMessage.innerHTML = message;
             filterHeader.addEventListener('click', () => toggleContent(filterContainer, filterContent, filterChevron));
             document.getElementById('audio-init-button').addEventListener('click', startAudioContext);
             locationSelect.addEventListener('change', updateCoordinatesFromSelect);
+
+            // NEUER BLOCK: Prüft beim Laden, ob Audio gestartet werden muss
+            if (Tone.context.state !== 'running') {
+                document.getElementById('audio-init-button').classList.remove('hidden');
+                alertUser("Tippen Sie auf 'Audio starten', um Töne zu aktivieren.", "blue");
+            } else {
+                isToneActive = true;
+            }
+
             if (locationSelect.value === 'gps') updateLocation(); else { updateStatusDisplay(); startDataRefresh(); }
             calculateBoundingBox();
         };
     </script>
 </body>
 </html>
-
-
-
-
-
-
