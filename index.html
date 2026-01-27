@@ -209,12 +209,12 @@
             filterContainer = document.getElementById('filter-container'), filterHeader = document.getElementById('filter-header'),
             filterContent = document.getElementById('filter-content'), filterChevron = document.getElementById('filter-chevron');
 
-        const STORAGE_KEY_PREFIX = 'flightTracker_', DEFAULT_LAT = "48.362998", DEFAULT_LON = "10.838984",
-            DEFAULT_SELECT_VALUE = "", DEFAULT_RADIUS = "20",
+        const STORAGE_KEY_PREFIX = 'flightTracker_', DEFAULT_LAT = "48.3629", DEFAULT_LON = "10.8389",
+            DEFAULT_SELECT_VALUE = "48.3629,10.8389", DEFAULT_RADIUS = "20",
             STORAGE_KEY_LOCATION_TOGGLE = STORAGE_KEY_PREFIX + 'locationToggle', STORAGE_KEY_FILTER_TOGGLE = STORAGE_KEY_PREFIX + 'filterToggle';
 
         let isGpsActive = false;
-        const stdLat = 48.362998, stdLon = 10.838984;
+        const stdLat = 48.3629, stdLon = 10.8389;
 
         function updateStatusDisplay() {
             const statusDiv = document.getElementById('gps-status');
@@ -491,6 +491,7 @@
     </script>
 </body>
 </html>
+
 
 
 
