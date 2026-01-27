@@ -327,8 +327,8 @@
             } else if (selectedValue !== "") {
                 isGpsActive = false;
                 const [lat, lon] = selectedValue.split(',').map(parseFloat);
-                centerLatInput.value = lat.toFixed(6);
-                centerLonInput.value = lon.toFixed(6);
+                centerLatInput.value = lat.toFixed(4);
+                centerLonInput.value = lon.toFixed(4);
                 updateStatusDisplay();
                 startDataRefresh();
             } else {
@@ -491,4 +491,5 @@
     </script>
 </body>
 </html>
+
 
