@@ -232,8 +232,8 @@
                     (p) => {
                         const newLat = p.coords.latitude;
                         const newLng = p.coords.longitude;
-                        centerLatInput.value = newLat.toFixed(6);
-                        centerLonInput.value = newLng.toFixed(6);
+                        centerLatInput.value = newLat.toFixed(4);
+                        centerLonInput.value = newLng.toFixed(4);
                         isGpsActive = true;
                         updateStatusDisplay();
                         calculateBoundingBox();
@@ -491,3 +491,4 @@
     </script>
 </body>
 </html>
+
