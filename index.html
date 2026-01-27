@@ -71,13 +71,14 @@
                 <div id="gps-status" class="gps-fallback">INITIALISIERUNG...</div>
                 <label for="locationSelect" class="block text-sm font-medium text-gray-700 mt-2">Schnellauswahl Standorte</label>
                 <select id="locationSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border bg-white">
-                    <option value="gps" selected>🛰️ Aktueller Standort (GPS)</option>
+                    <option value="gps">🛰️ Aktueller Standort (GPS)</option>
+                    <option value="" selected>✏️ Manuelle Eingabe</option>
                     <option value="48.362998,10.838984" data-name="Stadtbergen">Stadtbergen</option> 
                     <option value="48.32164602,10.91165543" data-name="Haunstetten">Haunstetten</option> 
-                    <option value="48.37,10.89" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
+                    <option value="48.425,10.932" data-name="Augsburg (EDMA)">Augsburg (EDMA)</option>
                     <option value="48.35,11.77" data-name="München (EDDM)">München (EDDM)</option>
                     <option value="48.34039104,11.79485321" data-name="Besucherhügel 2">Besucherhügel 2</option>
-                    <option value="50.11,8.68" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
+                    <option value="50.033,8.571" data-name="Frankfurt (EDDF)">Frankfurt (EDDF)</option>
                     <option value="52.3667,13.5033" data-name="Berlin (EDDB)">Berlin (EDDB)</option>
                     <option value="53.6304,9.9882" data-name="Hamburg (EDDH)">Hamburg (EDDH)</option>
                     <option value="53.0475,8.78667" data-name="Bremen (EDDW)">Bremen (EDDW)</option>
@@ -209,7 +210,7 @@
             filterContent = document.getElementById('filter-content'), filterChevron = document.getElementById('filter-chevron');
 
         const STORAGE_KEY_PREFIX = 'flightTracker_', DEFAULT_LAT = "48.362998", DEFAULT_LON = "10.838984",
-            DEFAULT_SELECT_VALUE = "gps", DEFAULT_RADIUS = "20",
+            DEFAULT_SELECT_VALUE = "", DEFAULT_RADIUS = "20",
             STORAGE_KEY_LOCATION_TOGGLE = STORAGE_KEY_PREFIX + 'locationToggle', STORAGE_KEY_FILTER_TOGGLE = STORAGE_KEY_PREFIX + 'filterToggle';
 
         let isGpsActive = false;
@@ -266,7 +267,7 @@
                 centerLonInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'lon') || DEFAULT_LON;
                 radiusKmInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'radius') || DEFAULT_RADIUS;
                 const savedLocationSelect = localStorage.getItem(STORAGE_KEY_PREFIX + 'locationSelect');
-                locationSelect.value = savedLocationSelect || DEFAULT_SELECT_VALUE;
+                locationSelect.value = savedLocationSelect !== null ? savedLocationSelect : DEFAULT_SELECT_VALUE;
                 
                 filterCallsignInput.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'callsign') || '';
                 filterCountrySelect.value = localStorage.getItem(STORAGE_KEY_PREFIX + 'country') || '';
@@ -323,11 +324,16 @@
                 isGpsActive = false;
                 updateLocation();
                 startDataRefresh();
-            } else if (selectedValue) {
+            } else if (selectedValue !== "") {
                 isGpsActive = false;
                 const [lat, lon] = selectedValue.split(',').map(parseFloat);
                 centerLatInput.value = lat.toFixed(6);
                 centerLonInput.value = lon.toFixed(6);
+                updateStatusDisplay();
+                startDataRefresh();
+            } else {
+                // Manuelle Eingabe ausgewählt
+                isGpsActive = false;
                 updateStatusDisplay();
                 startDataRefresh();
             }
