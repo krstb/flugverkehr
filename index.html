@@ -314,7 +314,7 @@
             if (isNaN(centerLat) || isNaN(centerLon) || isNaN(radiusKm)) return null;
             const deltaLat = radiusKm / DEG_TO_KM, deltaLon = radiusKm / (DEG_TO_KM * Math.cos(toRad(centerLat)));
             const bbox = { lamin: centerLat - deltaLat, lamax: centerLat + deltaLat, lomin: centerLon - deltaLon, lomax: centerLon + deltaLon };
-            currentBBoxText.textContent = `Suchbereich: B(${bbox.lamin.toFixed(4)}°- ${bbox.lamax.toFixed(4)}°), L(${bbox.lomin.toFixed(4)}°- ${bbox.lomax.toFixed(4)}°)`;
+            currentBBoxText.innerHTML = `Suchbereich:<br>B(${bbox.lamin.toFixed(4)}°- ${bbox.lamax.toFixed(4)}°), L(${bbox.lomin.toFixed(4)}°- ${bbox.lomax.toFixed(4)}°)`;
             return bbox;
         }
 
@@ -483,6 +483,7 @@ statusMessage.innerHTML = message;
     </script>
 </body>
 </html>
+
 
 
 
