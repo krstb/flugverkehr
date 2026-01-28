@@ -468,16 +468,30 @@
             refreshInterval = setInterval(getFlightData, REFRESH_INTERVAL_MS);
         }
         
-        window.onload = () => {
+                window.onload = () => {
             loadSettings();
-            [centerLatInput, centerLonInput, radiusKmInput].forEach(input => input.addEventListener('input', () => { isGpsActive = false; updateStatusDisplay(); startDataRefresh(); }));
+            
+            // Falls kein Speicherwert vorhanden oder Wert auf GPS steht, Stadtbergen erzwingen
+            if (!localStorage.getItem(STORAGE_KEY_PREFIX + 'locationSelect') || locationSelect.value === 'gps') {
+                locationSelect.value = "48.3629,10.8389";
+                centerLatInput.value = "48.3629";
+                centerLonInput.value = "10.8389";
+                isGpsActive = false;
+            }
+
+            [centerLatInput, centerLonInput, radiusKmInput].forEach(input => input.addEventListener('input', () => { 
+                isGpsActive = false; 
+                updateStatusDisplay(); 
+                startDataRefresh(); 
+            }));
+
             [filterCallsignInput, filterMinAltitudeInput, filterMaxAltitudeInput, filterMinSpeedInput, filterMaxSpeedInput, filterCountrySelect].forEach(input => input.addEventListener('input', applyFilters));
+            
             locationHeader.addEventListener('click', () => toggleContent(locationContainer, locationContent, locationChevron));
             filterHeader.addEventListener('click', () => toggleContent(filterContainer, filterContent, filterChevron));
             document.getElementById('audio-init-button').addEventListener('click', startAudioContext);
             locationSelect.addEventListener('change', updateCoordinatesFromSelect);
 
-            // NEUER BLOCK: Prüft beim Laden, ob Audio gestartet werden muss
             if (Tone.context.state !== 'running') {
                 document.getElementById('audio-init-button').classList.remove('hidden');
                 alertUser("Tippen Sie auf 'Audio starten', um Töne zu aktivieren.", "blue");
@@ -485,12 +499,20 @@
                 isToneActive = true;
             }
 
-            if (locationSelect.value === 'gps') updateLocation(); else { updateStatusDisplay(); startDataRefresh(); }
+            // Fix: Immer Daten-Refresh starten, unabhängig vom GPS Status
+            if (locationSelect.value === 'gps') {
+                updateLocation();
+            }
+            
+            updateStatusDisplay(); 
+            startDataRefresh(); // Stellt sicher, dass sofort geladen wird
             calculateBoundingBox();
         };
+
     </script>
 </body>
 </html>
+
 
 
 
