@@ -216,26 +216,14 @@
         let isGpsActive = false;
         const stdLat = 48.3629, stdLon = 10.8389;
 
-        // Hilfsfunktion zur Formatierung
-function toDMS(deg) {
-    const d = Math.floor(Math.abs(deg));
-    const m = Math.floor((Math.abs(deg) - d) * 60);
-    const s = Math.round(((Math.abs(deg) - d) * 60 - m) * 60);
-    return `${deg < 0 ? '-' : ''}${d}°${m}'${s}"`;
-}
-
-function updateStatusDisplay() {
-    const statusDiv = document.getElementById('gps-status');
-    const label = isGpsActive ? "🟢 GPS AKTIV" : (LAT === stdLat ? "🔴 STADTBERGEN" : "🔴 GESPEICHERT");
-    statusDiv.className = isGpsActive ? "gps-active" : "gps-fallback";
-    // Änderung hier: Nutzt nun toDMS für die Standort-Koordinaten
-    statusDiv.innerHTML = `${label} <span style="opacity:0.7; font-size:0.6rem; margin-left:5px;">${toDMS(LAT)} , ${toDMS(LON)}</span>`;
-}
-
-function update() {
-    // ... (Logik für Sonne/Mond/Planeten nutzt ebenfalls toDMS wie zuvor beschrieben)
-}
-
+        function updateStatusDisplay() {
+            const statusDiv = document.getElementById('gps-status');
+            const lat = parseFloat(centerLatInput.value);
+            const lon = parseFloat(centerLonInput.value);
+            const label = isGpsActive ? "🟢 GPS AKTIV" : (lat.toFixed(4) === stdLat.toFixed(4) ? "🔴 STADTBERGEN" : "🔴 MANUELL");
+            statusDiv.className = isGpsActive ? "gps-active" : "gps-fallback";
+            statusDiv.innerHTML = `${label} <span style="opacity:0.7; font-size:0.65rem; margin-left:5px;">${lat.toFixed(4)} , ${lon.toFixed(4)}</span>`;
+        }
 
         function updateLocation() {
             if (locationSelect.value !== 'gps') return;
@@ -524,7 +512,6 @@ function update() {
     </script>
 </body>
 </html>
-
 
 
 
